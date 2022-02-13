@@ -24,7 +24,7 @@ Run JAVA code
   javac .\net\javacode\JavaSqlite.java
 ```
 
-Connect to DataBase
+Connect to DataBase   
 **.;sqlite-jdbc-(--version--).jar**
 ```bash
   java -classpath ".;sqlite-jdbc-3.36.0.3.jar" net.javacode.JavaSqlite
