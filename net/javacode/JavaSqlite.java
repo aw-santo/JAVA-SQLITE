@@ -146,7 +146,10 @@ public class JavaSqlite {
         }
 
         // selecting data
+        System.out.println("All rows");
         db_obj.select("Movies"); // all rows
+
+        System.out.println("Rows having specific parameters");
         db_obj.select("Movies", "Tom Cruise"); // having actor name='Tom Cruise'
     }
 }
