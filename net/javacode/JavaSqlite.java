@@ -6,12 +6,13 @@ import java.lang.String;
 
 public class JavaSqlite {
 
-    public Connection connectTo(String db_name) {
+    private Connection connectTo(String db_name) {
         Connection conn = null;
         try {
-            // db parameters
+            // DB url
             String url = "jdbc:sqlite:db/" + db_name;
-            // create a connection to the database
+
+            // creating a connection to the database 'db_name'
             conn = DriverManager.getConnection(url);
 
             System.out.println("Connection to " + db_name + " has been established.");
@@ -22,14 +23,12 @@ public class JavaSqlite {
         return conn;
     }
 
-    public void createDB(String db_name) {
-
-//        String url = "jdbc:sqlite:db/" + db_name;
+    private void createDB(String db_name) {
 
         try (Connection conn = this.connectTo(db_name)) {
             if (conn != null) {
                 DatabaseMetaData meta = conn.getMetaData();
-                System.out.println("The driver name is " + meta.getDriverName());
+                System.out.println("Driver : " + meta.getDriverName());
                 System.out.println("A new database " + db_name +" has been created.");
             }
 
@@ -38,9 +37,7 @@ public class JavaSqlite {
         }
     }
 
-    public void createTable(String table_name) {
-        // SQLite connection string
-//        String url = "jdbc:sqlite:db/test.db";
+    private void createTable(String table_name) {
 
         // SQL statement for creating a new table
         String query = "CREATE TABLE IF NOT EXISTS Movies (\n"
@@ -53,10 +50,13 @@ public class JavaSqlite {
 
         try (Connection conn = this.connectTo("test.db");
              Statement stmt = conn.createStatement()) {
+
             // create a new table
-            DatabaseMetaData meta = conn.getMetaData();
-            System.out.println("The driver name is " + meta.getDriverName());
-            System.out.println("ok");
+
+            // metadata
+//            DatabaseMetaData meta = conn.getMetaData();
+//            System.out.println("Driver : " + meta.getDriverName());
+
             stmt.execute(query);
             System.out.println("Querry executed!");
         } catch (SQLException e) {
@@ -64,51 +64,48 @@ public class JavaSqlite {
         }
     }
 
-    public void insertInto(String table, String[] movie_data) {
-//        String query = "INSERT INTO "+ table +"(movie_name, actor, actress, year_of_release, director_name) VALUES(\n"
-//                + movie_data[0]+",\n"
-//                + movie_data[1]+",\n"
-//                + movie_data[2]+",\n"
-//                + Integer.parseInt(movie_data[3])+",\n"
-//                + movie_data[4]+"\n"
-//                + ");";
-
+    private void insertInto(String table, String[] movie_data) {
+        // SQl query
         String query = "INSERT INTO "+table+"(movie_name,actor,actress,year_of_release,director_name) VALUES(?,?,?,?,?)";
 
         try (Connection conn = this.connectTo("test.db");
              PreparedStatement pstmt = conn.prepareStatement(query)) {
-            System.out.println("ok");
+
+            // setting data
             pstmt.setString(1, movie_data[0]);
             pstmt.setString(2, movie_data[1]);
             pstmt.setString(3, movie_data[2]);
             pstmt.setInt(4, Integer.parseInt(movie_data[3]));
             pstmt.setString(5, movie_data[4]);
-            System.out.println("okok");
+
             pstmt.executeUpdate();
+            System.out.println("Data inserted");
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
     }
 
-    public void select(String table){
+    private void select(String table){
         this.select(table, null);
     }
 
-    public void select(String table, String actor){
+    private void select(String table, String actor){
 
-        String sql = actor==null ? "SELECT * FROM "+table : "SELECT * FROM "+table+" WHERE actor='"+actor+"';";
+        String query = actor==null ? "SELECT * FROM "+table : "SELECT * FROM "+table+" WHERE actor='"+actor+"';";
 
         try (Connection conn = this.connectTo("test.db");
              Statement stmt  = conn.createStatement();
-             ResultSet rs    = stmt.executeQuery(sql)){
 
-            // loop through the result set
-            while (rs.next()) {
-                System.out.println(rs.getString("movie_name") +  "\t" +
-                        rs.getString("actor") + "\t" +
-                        rs.getString("actress") + "\t" +
-                        rs.getString("director_name") + "\t" +
-                        rs.getInt("year_of_release")
+             // fetching rows (result-set)
+             ResultSet rows    = stmt.executeQuery(query)){
+
+            // loop through all the rows
+            while (rows.next()) {
+                System.out.println(rows.getString("movie_name") +  "\t" +
+                        rows.getString("actor") + "\t" +
+                        rows.getString("actress") + "\t" +
+                        rows.getString("director_name") + "\t" +
+                        rows.getInt("year_of_release")
                 );
             }
         } catch (SQLException e) {
@@ -121,22 +118,35 @@ public class JavaSqlite {
         JavaSqlite db_obj = new JavaSqlite();
 
         // connecting to existing Db
-//        db_obj.connectTo("chinook.db");
+        db_obj.connectTo("chinook.db");
 
 
+        // ** All the methods of db_obj are internally calling the connectTo() method so no need to call it explicitly.
         // creating new DB 'test.db'
-//        db_obj.createDB("test.db"); // this will automatically create as well as establish the connection implicitly.
+        db_obj.createDB("test.db"); // this will automatically create as well as establish the connection implicitly.
         // connecting to 'test.db'
-//        db_obj.connectTo("test.db"); // no need to connect to DB explicitly.
+        db_obj.connectTo("test.db"); // no need to connect to DB explicitly.
 
         // creating new table 'Movies'
-//        db_obj.createTable("Movies");
+        db_obj.createTable("Movies");
 
         // inserting data into 'Movies' table
-//        String[] movies_data = {"Robot", "Rajni", "Aishwarya", "2010", "Shankar"};
-//        db_obj.insertInto("Movies", movies_data);
+        String[][] movies_data = {{"Robot", "Rajni", "Aishwarya", "2010", "Shankar"},
+                                    {"Mission: Impossible - Fallout", "Tom Cruise", "Michelle", "2018", "Christopher McQuarrie"},
+                                    {"Interstellar", "Matthew McConaughey", "Anne", "2014", "Christopher Nolan"},
+                                    {"Inception", "Leonardo DiCaprio", "Elliot", "2010", "Christopher Nolan"},
+                                    {"The Matrix", "Keenu Reeves", "Carrie-Anne", "1999", "Lana, Lily Wachowski"},
+                                    {"Baahubali: The Beginning", "Prabhas", "Tamannaah", "2015", "S. S. Rajamouli"},
+                                    {"Avengers: Endgame", "Robert Downey JR", "Scarlett", "2019", "Anthony, Joe Russo"}
+                                };
+
+        for (int i = 0; i < movies_data.length; i++) {
+            // insertion
+            db_obj.insertInto("Movies", movies_data[i]);
+        }
 
         // selecting data
-        db_obj.select("Movies");
+        db_obj.select("Movies"); // all rows
+        db_obj.select("Movies", "Tom Cruise"); // having actor name='Tom Cruise'
     }
 }
